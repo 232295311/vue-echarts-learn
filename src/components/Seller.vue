@@ -145,6 +145,7 @@ export default {
     // 当浏览器大小发生变化时，完成页面的适配
     screenAdapter() {
       var titleFontSize = (this.$refs.seller_ref.offsetWidth / 100) * 3.6
+      
     //   配置项之三，根据窗口变化改变柱和标题的宽度等
       const adapterOption = {
         title: {
