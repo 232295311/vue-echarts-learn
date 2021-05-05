@@ -17,15 +17,27 @@ export default {
       timerId: null
     }
   },
+  created() {
+    //进行回调函数的注册，当拿到数据后，进行getData
+    this.$socket.registerCallBack('rankData', this.getData)
+  },
   mounted() {
     this.initChart()
-    this.getData()
+    // this.getData()
+    // 发送json数据给服务器，告诉服务器我需要数据
+    this.$socket.send({
+      action: 'getData',
+      socketType: 'rankData',
+      charName: 'rank',
+      value: ''
+    })
     window.addEventListener('resize', this.screenAdapter)
     this.screenAdapter()
   },
   destroyed() {
     window.removeEventListener('resize', this.screenAdapter)
     window.clearInterval(this.timerId)
+    this.$socket.unRegisterCallBack('rankData')
   },
   methods: {
     initChart() {
@@ -64,8 +76,8 @@ export default {
       })
       this.chartInstance.on('mouseout', this.startInterval)
     },
-    async getData() {
-      const { data: ret } = await this.$http.get('rank')
+    getData(ret) {
+    //   const { data: ret } = await this.$http.get('rank')
       this.allData = ret
       this.allData.sort((a, b) => {
         return b.value - a.value

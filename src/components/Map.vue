@@ -19,14 +19,26 @@ export default {
       mapData: {} // 所获取的省份的地图矢量数据 用作缓存
     }
   },
+  created() {
+    //进行回调函数的注册，当拿到数据后，进行getData
+    this.$socket.registerCallBack('mapData', this.getData)
+  },
   mounted() {
     this.initChart()
-    this.getData()
+    // this.getData()
+    // 发送json数据给服务器，告诉服务器我需要数据
+    this.$socket.send({
+      action: 'getData',
+      socketType: 'mapData',
+      charName: 'map',
+      value: ''
+    })
     window.addEventListener('resize', this.screenAdapter)
     this.screenAdapter()
   },
   destroyed() {
     window.removeEventListener('resize', this.screenAdapter)
+    this.$socket.unRegisterCallBack('mapData')
   },
   methods: {
     async initChart() {
@@ -61,7 +73,7 @@ export default {
       }
       this.chartInstance.setOption(initOption)
       this.chartInstance.on('click', async (arg) => {
-          console.log(arg)
+        console.log(arg)
         //   arg.name得到所点击的省份，这个省份他是中文
         const provinceInfo = getProvinceMapInfo(arg.name)
         // 判断当前所点击的这个省份的数据是否存在
@@ -81,8 +93,8 @@ export default {
         this.chartInstance.setOption(changeOption)
       })
     },
-    async getData() {
-      const { data: ret } = await this.$http.get('map')
+    getData(ret) {
+      //   const { data: ret } = await this.$http.get('map')
       this.allData = ret
       this.updateChart()
     },

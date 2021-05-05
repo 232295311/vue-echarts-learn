@@ -27,8 +27,7 @@ export default {
       const initOption = {
         title: {
           text: '▍商家销售统计',
-          textStyle: {
-          },
+          textStyle: {},
           left: 20,
           top: 20
         },
@@ -92,9 +91,9 @@ export default {
       })
     },
     //   获取服务器的数据
-    async getData() {
+    getData(ret) {
       // http://127.0.0.1:8888/api/seller
-      const { data: ret } = await this.$http.get('seller')
+      //   const { data: ret } = await this.$http.get('seller')
       this.allData = ret
       //   对数据排序
       this.allData.sort((a, b) => {
@@ -116,7 +115,7 @@ export default {
       const sellerValues = showData.map((item) => {
         return item.value
       })
-    //   配置项之二，专门用来给图表添加数据
+      //   配置项之二，专门用来给图表添加数据
       const dataOption = {
         yAxis: {
           data: sellerNames
@@ -145,8 +144,8 @@ export default {
     // 当浏览器大小发生变化时，完成页面的适配
     screenAdapter() {
       var titleFontSize = (this.$refs.seller_ref.offsetWidth / 100) * 3.6
-      
-    //   配置项之三，根据窗口变化改变柱和标题的宽度等
+
+      //   配置项之三，根据窗口变化改变柱和标题的宽度等
       const adapterOption = {
         title: {
           textStyle: {
@@ -174,15 +173,27 @@ export default {
       this.chartInstance.resize()
     }
   },
+  created() {
+    //进行回调函数的注册，当拿到数据后，进行getData
+    this.$socket.registerCallBack('sellerData', this.getData)
+  },
   mounted() {
     this.initChar()
-    this.getData()
+    // this.getData()
+    // 发送json数据给服务器，告诉服务器我需要数据
+    this.$socket.send({
+      action: 'getData',
+      socketType: 'sellerData',
+      charName: 'seller',
+      value: ''
+    })
     window.addEventListener('resize', this.screenAdapter)
     this.screenAdapter()
   },
   destroyed() {
     clearInterval(this.timerId)
     window.removeEventListener('resize', this.screenAdapter)
+    this.$socket.unRegisterCallBack('sellerData')
   }
 }
 </script>

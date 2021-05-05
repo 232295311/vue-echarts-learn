@@ -1,13 +1,14 @@
 <!-- 库存销量分析 -->
 <template>
   <div class='com-container'>
-    <div class='com-chart' ref='stock_ref'></div>
+    <div class='com-chart'
+         ref='stock_ref'></div>
   </div>
 </template>
 
 <script>
 export default {
-  data () {
+  data() {
     return {
       chartInstance: null,
       allData: null,
@@ -15,18 +16,30 @@ export default {
       timerId: null // 定时器的标识
     }
   },
-  mounted () {
+  created() {
+    //进行回调函数的注册，当拿到数据后，进行getData
+    this.$socket.registerCallBack('stockData', this.getData)
+  },
+  mounted() {
     this.initChart()
-    this.getData()
+    // this.getData()
+    // 发送json数据给服务器，告诉服务器我需要数据
+    this.$socket.send({
+      action: 'getData',
+      socketType: 'stockData',
+      charName: 'stock',
+      value: ''
+    })
     window.addEventListener('resize', this.screenAdapter)
     this.screenAdapter()
   },
-  destroyed () {
+  destroyed() {
     window.removeEventListener('resize', this.screenAdapter)
     clearInterval(this.timerId)
+    this.$socket.unRegisterCallBack('stockData')
   },
   methods: {
-    initChart () {
+    initChart() {
       this.chartInstance = this.$echarts.init(this.$refs.stock_ref, 'chalk')
       const initOption = {
         title: {
@@ -43,15 +56,15 @@ export default {
         this.startInterval()
       })
     },
-    async getData () {
+    getData(ret) {
       // 获取服务器的数据, 对this.allData进行赋值之后, 调用updateChart方法更新图表
-      const { data: ret } = await this.$http.get('stock')
+      //   const { data: ret } = await this.$http.get('stock')
       this.allData = ret
       console.log(this.allData)
       this.updateChart()
       this.startInterval()
     },
-    updateChart () {
+    updateChart() {
       const centerArr = [
         ['18%', '40%'],
         ['50%', '40%'],
@@ -72,8 +85,8 @@ export default {
       const showData = this.allData.slice(start, end)
       const seriesArr = showData.map((item, index) => {
         return {
-        //   type: 'pie',
-        //   radius: [200, 100],
+          //   type: 'pie',
+          //   radius: [200, 100],
           center: centerArr[index],
           hoverAnimation: false, // 关闭鼠标移入到饼图时的动画效果
           labelLine: {
@@ -114,8 +127,8 @@ export default {
       }
       this.chartInstance.setOption(dataOption)
     },
-    screenAdapter () {
-      const titleFontSize = this.$refs.stock_ref.offsetWidth / 100 * 3.6
+    screenAdapter() {
+      const titleFontSize = (this.$refs.stock_ref.offsetWidth / 100) * 3.6
       const innerRadius = titleFontSize * 2
       const outterRadius = innerRadius * 1.125
       const adapterOption = {
@@ -165,7 +178,7 @@ export default {
       this.chartInstance.setOption(adapterOption)
       this.chartInstance.resize()
     },
-    startInterval () {
+    startInterval() {
       if (this.timerId) {
         clearInterval(this.timerId)
       }
