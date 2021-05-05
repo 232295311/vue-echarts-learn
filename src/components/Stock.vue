@@ -7,6 +7,7 @@
 </template>
 
 <script>
+import { mapState } from 'vuex'
 export default {
   data() {
     return {
@@ -14,6 +15,19 @@ export default {
       allData: null,
       currentIndex: 0, // 当前显示的数据
       timerId: null // 定时器的标识
+    }
+  },
+  computed: {
+    ...mapState(['theme'])
+  },
+  watch: {
+    theme() {
+      console.log(mapState(['theme']))
+      console.log('主题切换了')
+      this.chartInstance.dispose() //销毁当前图表
+      this.initChart() //重新以最新的主题名称初始化对象
+      this.screenAdapter() //完成屏幕的适配
+      this.updateChart() // 更新图表的展示
     }
   },
   created() {
@@ -40,7 +54,7 @@ export default {
   },
   methods: {
     initChart() {
-      this.chartInstance = this.$echarts.init(this.$refs.stock_ref, 'chalk')
+      this.chartInstance = this.$echarts.init(this.$refs.stock_ref, this.theme)
       const initOption = {
         title: {
           text: '▎库存和销量分析',
@@ -98,7 +112,7 @@ export default {
           },
           data: [
             {
-              name: item.name + '\n' + item.sales,
+              name: item.name + '\n\n' + item.sales,
               value: item.sales,
               itemStyle: {
                 color: new this.$echarts.graphic.LinearGradient(0, 1, 0, 0, [
@@ -129,7 +143,7 @@ export default {
     },
     screenAdapter() {
       const titleFontSize = (this.$refs.stock_ref.offsetWidth / 100) * 3.6
-      const innerRadius = titleFontSize * 2
+      const innerRadius = titleFontSize * 2.8
       const outterRadius = innerRadius * 1.125
       const adapterOption = {
         title: {

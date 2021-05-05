@@ -7,6 +7,7 @@
 </template>
 
 <script>
+import { mapState } from 'vuex'
 export default {
   data() {
     return {
@@ -15,6 +16,17 @@ export default {
       startValue: 0,
       endValue: 9,
       timerId: null
+    }
+  },
+  computed: { ...mapState(['theme']) },
+  watch: {
+    theme() {
+      console.log(mapState(['theme']))
+      console.log('主题切换了')
+      this.chartInstance.dispose() //销毁当前图表
+      this.initChart() //重新以最新的主题名称初始化对象
+      this.screenAdapter() //完成屏幕的适配
+      this.updateChart() // 更新图表的展示
     }
   },
   created() {
@@ -41,7 +53,7 @@ export default {
   },
   methods: {
     initChart() {
-      this.chartInstance = this.$echarts.init(this.$refs.rank_ref, 'chalk')
+      this.chartInstance = this.$echarts.init(this.$refs.rank_ref, this.theme)
       const initOption = {
         title: {
           text: '▍地区销售排行',
@@ -77,7 +89,7 @@ export default {
       this.chartInstance.on('mouseout', this.startInterval)
     },
     getData(ret) {
-    //   const { data: ret } = await this.$http.get('rank')
+      //   const { data: ret } = await this.$http.get('rank')
       this.allData = ret
       this.allData.sort((a, b) => {
         return b.value - a.value
@@ -104,7 +116,7 @@ export default {
           data: provinceArr
         },
         dataZoom: {
-          show: true,
+          show: false,
           startValue: this.startValue,
           endValue: this.endValue
         },

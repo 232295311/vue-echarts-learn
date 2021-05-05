@@ -60,7 +60,10 @@ export default class SocketService {
           //   调用回调函数 this指向该类唯一实例
           this.callBackMapping[socketType](realData);
         } else if (action === "fullScreen") {
+          //   调用回调函数 this指向该类唯一实例
+          this.callBackMapping[socketType](recvData);
         } else if (action === "themeChange") {
+          this.callBackMapping[socketType](recvData);
         }
       }
     };

@@ -21,6 +21,8 @@
 </template>
 
 <script>
+import { mapState } from 'vuex'
+import { getThemeValue } from '@/utils/theme_utils.js'
 export default {
   data() {
     return {
@@ -31,9 +33,50 @@ export default {
       titleFontSize: 0 //指明标题的字体大小
     }
   },
+  computed: {
+    selectTypes() {
+      if (!this.allData) {
+        return []
+      } else {
+        return this.allData.type.filter((item) => {
+          return item.key !== this.choiceType
+        })
+      }
+    },
+    showTitle() {
+      if (!this.allData) {
+        return ''
+      } else {
+        return this.allData[this.choiceType].title
+      }
+    },
+    // 设置给标题的样式
+    comStyle() {
+      return {
+        fontSize: this.titleFontSize + 'px',
+        color: getThemeValue(this.theme).titleColor
+      }
+    },
+    marginStyle() {
+      return {
+        marginLeft: this.titleFontSize / 2 + 'px'
+      }
+    },
+    ...mapState(['theme'])
+  },
+  watch: {
+    theme() {
+      console.log(mapState(['theme']))
+      console.log('主题切换了')
+      this.chartInstance.dispose() //销毁当前图表
+      this.initChart() //重新以最新的主题名称初始化对象
+      this.screenAdapter() //完成屏幕的适配
+      this.updateChart() // 更新图表的展示
+    }
+  },
   methods: {
     initChart() {
-      this.chartInstance = this.$echarts.init(this.$refs.trend_ref, 'chalk')
+      this.chartInstance = this.$echarts.init(this.$refs.trend_ref, this.theme)
       const initOption = {
         grid: {
           left: '3%',
@@ -148,35 +191,7 @@ export default {
       this.showChoice = false
     }
   },
-  computed: {
-    selectTypes() {
-      if (!this.allData) {
-        return []
-      } else {
-        return this.allData.type.filter((item) => {
-          return item.key !== this.choiceType
-        })
-      }
-    },
-    showTitle() {
-      if (!this.allData) {
-        return ''
-      } else {
-        return this.allData[this.choiceType].title
-      }
-    },
-    // 设置给标题的样式
-    comStyle() {
-      return {
-        fontSize: this.titleFontSize + 'px'
-      }
-    },
-    marginStyle() {
-      return {
-        marginLeft: this.titleFontSize / 2 + 'px'
-      }
-    }
-  },
+
   created() {
     //进行回调函数的注册，当拿到数据后，进行getData
     this.$socket.registerCallBack('trendData', this.getData)

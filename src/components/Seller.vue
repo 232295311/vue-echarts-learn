@@ -9,6 +9,7 @@
 </template>
 
 <script>
+import { mapState } from 'vuex'
 export default {
   data() {
     return {
@@ -22,7 +23,7 @@ export default {
   methods: {
     //   初始化echartInstance对象
     initChar() {
-      this.chartInstance = this.$echarts.init(this.$refs.seller_ref, 'chalk')
+      this.chartInstance = this.$echarts.init(this.$refs.seller_ref, this.theme)
       //   配置项之一 对图表初始化配置的控制
       const initOption = {
         title: {
@@ -194,6 +195,19 @@ export default {
     clearInterval(this.timerId)
     window.removeEventListener('resize', this.screenAdapter)
     this.$socket.unRegisterCallBack('sellerData')
+  },
+  computed: {
+    ...mapState(['theme'])
+  },
+  watch: {
+    theme() {
+      console.log(mapState(['theme']))
+      console.log('主题切换了')
+      this.chartInstance.dispose() //销毁当前图表
+      this.initChar() //重新以最新的主题名称初始化对象
+      this.screenAdapter() //完成屏幕的适配
+      this.updateChart() // 更新图表的展示
+    }
   }
 }
 </script>
