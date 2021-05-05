@@ -60,9 +60,11 @@ export default {
       }
       this.chartInstance.setOption(initOption)
     },
-    async getData() {
+    // ret就是服务端发送给客户端的图表的数据
+    getData(ret) {
+      //   console.log(this)
       // await this.$http.get()
-      const { data: ret } = await this.$http.get('trend')
+      //   const { data: ret } = await this.$http.get('trend')
       this.allData = ret
       console.log(this.allData)
       this.updateChart()
@@ -175,14 +177,26 @@ export default {
       }
     }
   },
+  created() {
+    //进行回调函数的注册，当拿到数据后，进行getData
+    this.$socket.registerCallBack('trendData', this.getData)
+  },
   mounted() {
     this.initChart()
-    this.getData()
+    // this.getData()
+    // 发送json数据给服务器，告诉服务器我需要数据
+    this.$socket.send({
+      action: 'getData',
+      socketType: 'trendData',
+      charName: 'trend',
+      value: ''
+    })
     window.addEventListener('resize', this.screenAdapter)
     this.screenAdapter()
   },
   destroyed() {
     window.removeEventListener('resize', this.screenAdapter)
+    this.$socket.unRegisterCallBack('trendData')
   }
 }
 </script>
